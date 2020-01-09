@@ -4,14 +4,16 @@ import org.scalatest.FunSuite
 
 class ParserTests extends FunSuite {
   test("test parsing") {
-    Parser.parse(TestGrammar, "agg by dim".split(' ').map(tokenToTerminal))
+    val res = Parser.parse(TestGrammar, "agg by dim".split(' ').map(tokenToTerminal))
+    //todo: add actual tests
+    println(res.mkString("\n"))
   }
 
   // todo: add some type safety
   def tokenToTerminal(token: String): Terminal[Expr] = token match {
-    case r"(agg.*)" => Agg
-    case r"(dim.*)" => Dim
-    case r"(ent.*)" => Entity
+    case r"agg*" => Aggregate
+    case r"dim*" => Dim
+    case r"ent*" => Entity
     case s => WORD(s)
   }
 

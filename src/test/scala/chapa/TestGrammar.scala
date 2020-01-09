@@ -2,7 +2,11 @@ package chapa
 
 object TestGrammar extends Grammar {
   val rules = Set[Rule](
-    Rule(GROUP, WORD("by"), Dim, (_: StringExpr, dim: DimExpr) => GroupByExpr(Some(dim))),
+    Rule(S, AGG, GROUP, (agg: AggExpr, group: GroupByExpr) => QueryExpr(agg, group)),
+
+    Rule(AGG, Aggregate, (agg: AggregateExpr) => AggExpr(agg)),
+
+    Rule(GROUP, WORD("by"), Dim, (_: StringExpr, dim: DimExpr) => GroupByExpr(dim)),
 
     Rule(FILTER, WORD("where"), B_EXPR, (_: StringExpr, bExpr: BExpr) => FilterExpr(bExpr)),
     Rule(FILTER, B_EXPR, (bExpr: BExpr) => FilterExpr(bExpr)),
