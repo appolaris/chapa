@@ -2,8 +2,6 @@ package chapa
 
 import scala.annotation.tailrec
 
-case class ParserState(agenda: List[Edge], chart: Set[Edge])
-
 object Parser {
   def parse(grammar: Grammar, sentence: Seq[Terminal[_]]): Set[Edge] = {
     val initialAgenda = initBottomUpAgenda(grammar, sentence)
