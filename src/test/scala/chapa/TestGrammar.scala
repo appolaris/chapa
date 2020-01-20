@@ -1,6 +1,8 @@
 package chapa
 
 object TestGrammar extends Grammar {
+  val rootSymbol = S
+
   val rules = Set[Rule](
     Rule(S, AGG, GROUP, (agg: AggExpr, group: GroupByExpr) => QueryExpr(agg, group)),
 
@@ -19,6 +21,15 @@ object TestGrammar extends Grammar {
     Rule(COND, Dim, Entity, (dim: DimExpr, ent: EntityExpr) => CondExpr(dim, ent)),
   )
 
+  // todo: add some type safety
+  override def tokenToTerminal(token: String): Terminal[Expr] = token match {
+    case r"agg*" => Aggregate
+    case r"dim*" => Dim
+    case r"ent*" => Entity
+    case s => WORD(s)
+  }
 
-
+  implicit class Regex(sc: StringContext) {
+    def r = new util.matching.Regex(sc.parts.mkString, sc.parts.tail.map(_ => "x"): _*)
+  }
 }
