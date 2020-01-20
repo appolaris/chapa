@@ -17,35 +17,41 @@ object Parser {
     }.toList
   }
 
+  def fundamentalRule(agendaEdge: Edge, chartEdge: Edge): Seq[Edge] = (agendaEdge, chartEdge) match {
+    case (e1: Edge, e2: RuleEdge) if e1.isInactive && e2.isActive => fundamentalRule2(e1, e2)
+    case (e1: RuleEdge, e2: Edge) if e1.isActive && e2.isInactive => fundamentalRule2(e2, e1)
+    case _ => Seq()
+  }
+
+  def fundamentalRule2(inactiveEdge: Edge, activeEdge: RuleEdge): Seq[Edge] = {
+    if (activeEdge.end != inactiveEdge.start) return Vector()
+
+    val firstUnprocessedSymbol = activeEdge.rule.rhs
+      .zipWithIndex.zip(activeEdge.children)
+      .collectFirst { case (symbolAndIndex, None) => symbolAndIndex }
+
+    firstUnprocessedSymbol.collectFirst {
+      case (symbol, idx) if symbol == inactiveEdge.symbol =>
+        RuleEdge(activeEdge.start, inactiveEdge.end, activeEdge.rule, activeEdge.children.updated(idx, Some(inactiveEdge)))
+    }.toSeq
+  }
+
   // generates new edges to be added to agenda
   // todo - probably pass this function into the loop to configure algorithm
   def chartRules(grammar: Grammar, edge: Edge, chart: Set[Edge]): List[Edge] = {
     // Fundamental rule
-    val filled = edge match {
-      case inactiveEdge if inactiveEdge.unprocessed.isEmpty =>
-        // Edge is inactive - find all ACTIVE edges which can be (partially?) filled by this INACTIVE edge
-        chart.collect {
-          case RuleEdge(start, end, rule, processed, nextSymbol +: unprocessed) if end == edge.start && nextSymbol == edge.symbol =>
-            RuleEdge(start, edge.end, rule, processed :+ edge, unprocessed)
-        }
-      case activeEdge: RuleEdge if activeEdge.unprocessed.nonEmpty =>
-        // Edge is ACTIVE - find all INACTIVE edges which can complete this ACTIVE edge
-        chart.collect {
-          case inactiveEdge if inactiveEdge.unprocessed.isEmpty && activeEdge.end == inactiveEdge.start && activeEdge.unprocessed.head == inactiveEdge.symbol =>
-            RuleEdge(activeEdge.start, inactiveEdge.end, activeEdge.rule , activeEdge.children :+ inactiveEdge, activeEdge.unprocessed.tail)
-        }
-    }
+    val fundamental = chart.flatMap(chartEdge => fundamentalRule(edge, chartEdge))
 
     // Prediction rule for INACTIVE edge only - add active edges for all rules which have RHS beginning with symbol of this INACTIVE edge
-    val predicted = if (edge.unprocessed.isEmpty) {
+    val predicted = if (edge.isInactive) {
       grammar.rules.filter(r => r.rhs.head == edge.symbol).map(r =>
-        RuleEdge(edge.start, edge.end, r, Vector(edge), r.rhs.tail)
+        RuleEdge(edge.start, edge.end, r, Some(edge) +: Vector.fill(r.rhs.length - 1)(None))
       )
     }
     else
       Nil
 
-    filled.toList ++ predicted
+    fundamental.toList ++ predicted
   }
 
   @tailrec

@@ -10,14 +10,24 @@ class ParserTests extends FunSuite {
     println(res1.mkString("\n"))
     println()
 
-    val inactive = res1.filter(_.unprocessed.isEmpty)
+    val inactive = res1.filter(_.isInactive)
     println("-- Inactive --")
     println(inactive.mkString("\n"))
     println()
 
-    val roots = inactive -- inactive.flatMap(_.children)
+    val roots = inactive -- inactive.flatMap(_.children.flatten)
     println("-- Roots --")
     println(roots.mkString("\n"))
+    println()
+
+    val combined = Parser2.parse(TestGrammar, roots)
+    println("-- Combined --")
+    println(combined.mkString("\n"))
+    println()
+
+    val fromS = combined.filter(_.symbol == S)
+    println("-- S --")
+    println(fromS.mkString("\n"))
     println()
   }
 

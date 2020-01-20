@@ -3,28 +3,56 @@ package chapa
 import scala.annotation.tailrec
 
 object Parser2 {
-  case class State(agenda: List[Set[Edge]], result: Set[Set[Edge]]) // TODO: better name?
-
-  /** Builds compLete trees (starting from 5) by combining and extending (with "holes") set of inactive edges.
-    * @param chart Inactive edges obtained by the normal, bottom-up chart parsing. Only top Level edges are expected.
-    * @return Complete trees (starting from 5) obtained by applying rules to combine & extend subtrees.
-    */
-  def combine(chart: Set[Edge]): Set[Set[Edge]] = {
-    combineInt(State(List(chart), Set()))
+  def parse(grammar: Grammar, agenda: Set[Edge]): Set[Edge] = {
+    val initialChart = Set[Edge]()
+    val chart = step(grammar, chartRules, agenda.toList, initialChart)
+    chart
   }
+
+  def fundamentalRule(agendaEdge: Edge, chartEdge: Edge): Seq[Edge] = (agendaEdge, chartEdge) match {
+    case (e1: Edge, e2: RuleEdge) if e2.isActive => fundamentalRule2(e1, e2)
+    case (e1: RuleEdge, e2: Edge) if e1.isActive => fundamentalRule2(e2, e1)
+    case _ => Seq()
+  }
+
+  def fundamentalRule2(edge: Edge, ruleEdge: RuleEdge): Seq[Edge] = {
+    val unprocessedSymbols = ruleEdge.rule.rhs
+      .zipWithIndex.zip(ruleEdge.children)
+      .collect { case (symbolAndIndex, None) => symbolAndIndex }
+
+    unprocessedSymbols.collect {
+      case (symbol, idx) if symbol == edge.symbol =>
+        RuleEdge(ruleEdge.start, edge.end, ruleEdge.rule, ruleEdge.children.updated(idx, Some(edge)))
+    }
+  }
+
+  // generates new edges to be added to agenda
+  def chartRules(grammar: Grammar, edge: Edge, chart: Set[Edge]): List[Edge] = {
+    // Fundamental rule
+    val fundamental = chart.flatMap(chartEdge => fundamentalRule(edge, chartEdge))
+
+    // Prediction rule
+    // TODO - probably check if such edge already exists
+    val predicted = grammar.rules.flatMap(r => r.rhs.zipWithIndex.collect {
+      case (symbol, idx) if symbol == edge.symbol =>
+        RuleEdge(edge.start, edge.end, r, Vector.fill(r.rhs.length)(None).updated(idx, Some(edge)))
+    })
+
+    fundamental.toList ++ predicted
+  }
+
+  //  def firstUnprocessed(edge: RuleEdge): Option[Symbol[_]] = rule.rhs.zip(children).collectFirst { case (symbol, None) => symbol }
 
   @tailrec
-  def combineInt(state: State): Set[Set[Edge]] = state.agenda match {
-    case chart::tail =>
-      val newState = combineAtomic(chart)
-      combineInt(State(newState.agenda ++ tail, newState.result ++ state.result))
-    case Nil => state.result
+  private final def step(grammar: Grammar,
+                         chartRules: (Grammar, Edge, Set[Edge]) => List[Edge],
+                         agenda: List[Edge],
+                         chart: Set[Edge]): Set[Edge] = agenda match {
+    case Nil => chart
+    case edge::edges =>
+      val newEdges = chartRules(grammar, edge, chart)
+      val newAgenda = edges ++ newEdges // TODO: dfs vs bfs ?
+      val newChart = chart + edge
+      step(grammar, chartRules, newAgenda, newChart)
   }
-
-  /** Takes incomplete chart (set of edges/subtrees) and tries to make a more complete chart or a final tree rooted at S.
-    * How it is done depends on particular rules.
-    * @param chart Set of inactive rules to be combined / extended.
-    * @return New incomplete charts or final, results (S edges).
-    */
-  def combineAtomic(chart: Set[Edge]): State = ???
 }
