@@ -10,4 +10,9 @@ package object chapa {
     case e: TerminalEdge => s"$BLUE${e.symbol.toString}$RESET"
     case e: RuleEdge => s"""(${e.rule.lhs} => ${(e.children zip e.rule.rhs).map(x => x._1.map(deepPrint).getOrElse(s"$RED${x._2}$RESET")).mkString(" ")})"""
   }
+
+  def getSubEdges(edge: Edge): Set[Edge] = {
+    (edge.children.flatten ++ edge.children.flatten.flatMap(getSubEdges)).toSet
+  }
+
 }

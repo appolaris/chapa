@@ -36,10 +36,6 @@ object ParsePipeline {
     requiredEdges.forall(e => subEdges.contains(e))
   }
 
-  private def getSubEdges(edge: Edge): Set[Edge] = {
-    (edge.children.flatten ++ edge.children.flatten.flatMap(getSubEdges)).toSet
-  }
-
   private def printTrace(header: String, edges: Iterable[Edge]): Unit = {
     println(s"-- $header --")
     println(edges.map(prettyPrint).mkString("\n"))

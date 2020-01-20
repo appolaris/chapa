@@ -8,7 +8,9 @@ object RulesPhase2 {
 
     // Prediction rule
     // TODO - probably check if such edge already exists
-    val predicted = grammar.rules.flatMap(r => r.rhs.zipWithIndex.collect {
+    // Ignore rules which were already used to handle recursive rules
+    val usedRules = getSubEdges(edge).collect { case e: RuleEdge => e.rule }
+    val predicted = grammar.rules.diff(usedRules).flatMap(r => r.rhs.zipWithIndex.collect {
       case (symbol, idx) if symbol == edge.symbol =>
         RuleEdge(edge.start, edge.end, r, Vector.fill(r.rhs.length)(None).updated(idx, Some(edge)))
     })
