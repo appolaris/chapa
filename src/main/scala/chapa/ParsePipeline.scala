@@ -13,16 +13,31 @@ object ParsePipeline {
     val inactive = res1.filter(_.isInactive)
     if (trace) printTrace("Inactive", inactive)
 
-    val roots = inactive -- inactive.flatMap(_.children.flatten)
-    if (trace) printTrace("Roots", roots)
+    val parents = inactive -- inactive.flatMap(_.children.flatten)
+    if (trace) printTrace("Parents", parents)
 
-    val combined = ChartParser.parse(RulesPhase2.chartRules, grammar, roots.toList)
+    val combined = ChartParser.parse(RulesPhase2.chartRules, grammar, parents.toList)
     if (trace) printTrace("Combined", combined)
 
-    val purged = Purger.purge(grammar.rootSymbol, combined)
+    val roots = combined.filter(_.symbol == grammar.rootSymbol)
+    if (trace) printTrace("Roots", roots)
+
+    val withRequired = roots.filter(r => containsSubEdges(r, inactive))
+    if (trace) printTrace("Roots with required edges", withRequired)
+
+    val purged = Purger.purge(withRequired)
     if (trace) printTrace("Purged", purged)
 
     purged
+  }
+
+  private def containsSubEdges(parentEdge: Edge, requiredEdges: Iterable[Edge]) = {
+    val subEdges = getSubEdges(parentEdge)
+    requiredEdges.forall(e => subEdges.contains(e))
+  }
+
+  private def getSubEdges(edge: Edge): Set[Edge] = {
+    (edge.children.flatten ++ edge.children.flatten.flatMap(getSubEdges)).toSet
   }
 
   private def printTrace(header: String, edges: Iterable[Edge]): Unit = {

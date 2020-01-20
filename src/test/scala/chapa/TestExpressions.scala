@@ -1,6 +1,6 @@
 package chapa
 
-case class QueryExpr(agg: AggExpr, group: GroupByExpr) extends Expr
+case class QueryExpr(agg: AggExpr, group: Option[GroupByExpr], filter: Option[FilterExpr]) extends Expr
 case class AggregateExpr(s: String) extends Expr
 case class DimExpr(s: String) extends Expr
 case class AggExpr(dim: AggregateExpr) extends Expr

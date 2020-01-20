@@ -12,7 +12,7 @@ class PurgerTests extends FunSuite {
     val edge1 = RuleEdge(0, 1, RULE_S, Vector(child, child))
     val edge2 = RuleEdge(1, 2, RULE_S, Vector(child, None))
     val edge3 = RuleEdge(1, 2, RULE_S, Vector(None, child))
-    assert(Purger.purge(S, Set(edge1, edge2, edge3)) == List(edge1))
+    assert(Purger.purge(Set(edge1, edge2, edge3)) == List(edge1))
   }
 
   test("RuleEdge == RuleEdge") {

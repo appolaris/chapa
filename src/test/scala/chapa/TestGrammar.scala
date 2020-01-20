@@ -4,7 +4,9 @@ object TestGrammar extends Grammar {
   val rootSymbol = S
 
   val rules = Set[Rule](
-    Rule(S, AGG, GROUP, (agg: AggExpr, group: GroupByExpr) => QueryExpr(agg, group)),
+    Rule(S, AGG, GROUP, (agg: AggExpr, group: GroupByExpr) => QueryExpr(agg, Some(group), None)),
+    Rule(S, AGG, FILTER, (agg: AggExpr, filter: FilterExpr) => QueryExpr(agg, None, Some(filter))),
+    Rule(S, AGG, GROUP, FILTER, (agg: AggExpr, group: GroupByExpr, filter: FilterExpr) => QueryExpr(agg, Some(group), Some(filter))),
 
     Rule(AGG, Aggregate, (agg: AggregateExpr) => AggExpr(agg)),
 

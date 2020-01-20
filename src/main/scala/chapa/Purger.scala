@@ -6,9 +6,8 @@ object Purger {
   /**
     * Removes less complete edges (parse trees) where more complete alternatives exist.
     */
-  def purge(rootSymbol: Symbol[_], edges: Set[Edge]): List[Edge] = {
-    val ss = edges.filter(_.symbol == rootSymbol).toList
-    filter(ss, Nil)
+  def purge(edges: Iterable[Edge]): List[Edge] = {
+    filter(edges.toList, Nil)
   }
 
   @tailrec
