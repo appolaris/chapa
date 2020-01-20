@@ -20,5 +20,5 @@ case class TerminalEdge(start: Int, terminal: Terminal[_]) extends Edge {
 
 case class RuleEdge(start: Int, end: Int, rule: Rule, children: Vector[Option[Edge]]) extends Edge {
   override def symbol: Symbol[_] = rule.lhs
-  override def toString: String = s"""$start, $end, ${rule.lhs} => ${rule.rhs.zip(children).map(x => if (x._2.isDefined) x._1 else s"$RED${x._1}$RESET").mkString(" ")}"""
+  override def toString: String = s"""$start, $end, ${rule.lhs} => ${rule.rhs.zip(children).map(x => if (x._2.isDefined) x._1 else s"[${x._1}]").mkString(" ")}"""
 }
