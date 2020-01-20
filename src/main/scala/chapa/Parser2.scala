@@ -22,7 +22,10 @@ object Parser2 {
 
     unprocessedSymbols.collect {
       case (symbol, idx) if symbol == edge.symbol =>
-        RuleEdge(ruleEdge.start, edge.end, ruleEdge.rule, ruleEdge.children.updated(idx, Some(edge)))
+        // Since we can combine edges in any order and allow "holes" between child edges - start & end are rather imprecise
+        val start = Math.min(edge.start, ruleEdge.start)
+        val end = Math.max(edge.end, ruleEdge.end)
+        RuleEdge(start, end, ruleEdge.rule, ruleEdge.children.updated(idx, Some(edge)))
     }
   }
 
