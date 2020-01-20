@@ -5,7 +5,13 @@ import org.scalatest.FunSuite
 class ParserTests extends FunSuite {
   //todo: add actual tests
   test("test parsing") {
-    val res1 = Parser.parse(TestGrammar, "agg by".split(' ').map(tokenToTerminal))
+
+    val sentence = "agg by".split(' ').map(tokenToTerminal)
+    val terminals = sentence.zipWithIndex.map {
+      case (terminal, index) => TerminalEdge(index, terminal)
+    }.toList
+
+    val res1 = ChartParser.parse(RulesPhase1.chartRules, TestGrammar, terminals)
     println("-- Initial --")
     println(res1.mkString("\n"))
     println()
@@ -20,7 +26,7 @@ class ParserTests extends FunSuite {
     println(roots.mkString("\n"))
     println()
 
-    val combined = Parser2.parse(TestGrammar, roots)
+    val combined = ChartParser.parse(RulesPhase2.chartRules, TestGrammar, roots.toList)
     println("-- Combined --")
     println(combined.mkString("\n"))
     println()
